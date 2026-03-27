@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversations List</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #e8e9eb;
+            --bg-card: #f5f5f6;
+            --text-primary: #2c3340;
+            --text-secondary: #8a8f98;
+            --text-muted: #b4b8c0;
+            --accent-orange: #ff9f43;
+            --badge-bg: #f5e6d3;
+            --badge-text: #8b7355;
+            --border-color: #dfe1e4;
+            --hover-bg: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            padding: 24px;
+            min-height: 100vh;
+        }
+
+        .conversations-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .conversations-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .conversations-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .conversations-count {
+            font-size: 24px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .conversations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .conversation-item {
+            position: relative;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .conversation-item:last-child {
+            border-bottom: none;
+        }
+
+        .conversation-item:hover {
+            background: var(--hover-bg);
+            transform: translateX(4px);
+        }
+
+        .conversation-item.has-accent::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--accent-orange);
+            border-radius: 2px 0 0 2px;
+        }
+
+        .conversation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .conversation-id {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.2px;
+        }
+
+        .conversation-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .new-badge {
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 8px;
+            letter-spacing: 0.2px;
+        }
+
+        .conversation-time {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .conversation-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .conversation-preview {
+            font-size: 15px;
+            color: var(--text-secondary);
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 600px) {
+            .conversations-container {
+                padding: 16px;
+                border-radius: 12px;
+            }
+
+            .conversations-title {
+                font-size: 24px;
+            }
+
+            .conversation-item {
+                padding: 16px;
+            }
+
+            .conversation-id {
+                font-size: 15px;
+            }
+
+            .conversation-preview {
+                font-size: 14px;
+            }
+        }
+
+        /* Subtle animation on load */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .conversation-item {
+            animation: fadeInUp 0.4s ease backwards;
+        }
+
+        .conversation-item:nth-child(1) { animation-delay: 0.05s; }
+        .conversation-item:nth-child(2) { animation-delay: 0.1s; }
+        .conversation-item:nth-child(3) { animation-delay: 0.15s; }
+        .conversation-item:nth-child(4) { animation-delay: 0.2s; }
+        .conversation-item:nth-child(5) { animation-delay: 0.25s; }
+        .conversation-item:nth-child(6) { animation-delay: 0.3s; }
+        .conversation-item:nth-child(7) { animation-delay: 0.35s; }
+    </style>
+</head>
+<body>
+    <div class="conversations-container">
+        <div class="conversations-header">
+            <h1 class="conversations-title">Conversations</h1>
+            <span class="conversations-count">3</span>
+        </div>
+
+        <div class="conversations-list">
+            <!-- Conversation 1 - With accent -->
+            <div class="conversation-item has-accent">
+                <div class="conversation-header">
+                    <div class="conversation-id">Ref. ID - 75433</div>
+                    <div class="conversation-meta">
+                        <span class="conversation-time">12:55 am</span>
+                    </div>
+                </div>
+                <div class="conversation-content">
+                    <div class="conversation-preview">Hi, i want make enquir...</div>
+                </div>
+            </div>
+
+            <!-- Conversation 2 - With New badge -->
+            <div class="conversation-item">
+                <div class="conversation-header">
+                    <div class="conversation-id">Ref. ID - 86870</div>
+                    <div class="conversation-meta">
+                        <span class="new-badge">New</span>
+                        <span class="conversation-time">12:55 am</span>
+                    </div>
+                </div>
+                <div class="conversation-content">
+                    <div class="conversation-preview">Hi, i want make enquir...</div>
+                </div>
+            </div>
+
+            <!-- Conversation 3 - With New badge -->
+            <div class="conversation-item">
+                <div class="conversation-header">
+                    <div class="conversation-id">Ref. ID - 91575</div>
+                    <div class="conversation-meta">
+                        <span class="new-badge">New</span>
+                        <span class="conversation-time">12:55 am</span>
+                    </div>
+                </div>
+                <div class="conversation-content">
+                    <div class="conversation-preview">Hi, i want make enquir...</div>
+                </div>
+            </div>
+
+            <!-- Conversation 4 -->
+            <div class="conversation-item">
+                <div class="conversation-header">
+                    <div class="conversation-id">Ref. ID - 7136</div>
+                    <div class="conversation-meta">
+                        <span class="conversation-time">12:55 am</span>
+                    </div>
+                </div>
+                <div class="conversation-content">
+                    <div class="conversation-preview">Hi, i want make enquir...</div>
+                </div>
+            </div>
+
+            <!-- Conversation 5 -->
+            <div class="conversation-item">
+                <div class="conversation-header">
+                    <div class="conversation-id">Ref. ID - 94502</div>
+                    <div class="conversation-meta">
+                        <span class="conversation-time">12:55 am</span>
+                    </div>
+                </div>
+                <div class="conversation-content">
+                    <div class="conversation-preview">Hi, i want make enquir...</div>
+                </div>
+            </div>
+
+            <!-- Conversation 6 -->
+            <div class="conversation-item">
+                <div class="conversation-header">
+                    <div class="conversation-id">Ref. ID - 9823</div>
+                    <div class="conversation-meta">
+                        <span class="conversation-time">12:55 am</span>
+                    </div>
+                </div>
+                <div class="conversation-content">
+                    <div class="conversation-preview">Hi, i want make enquir...</div>
+                </div>
+            </div>
+
+            <!-- Conversation 7 -->
+            <div class="conversation-item">
+                <div class="conversation-header">
+                    <div class="conversation-id">Ref. ID - 36656</div>
+                    <div class="conversation-meta">
+                        <span class="conversation-time">12:55 am</span>
+                    </div>
+                </div>
+                <div class="conversation-content">
+                    <div class="conversation-preview">Hi, i want make enquir...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add click event to conversation items
+        document.querySelectorAll('.conversation-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const refId = this.querySelector('.conversation-id').textContent;
+                console.log('Clicked on:', refId);
+                // You can add your click handler here
+            });
+        });
+    </script>
+</body>
+</html>
