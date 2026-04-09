@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waveform Audio Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #e8e4dc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .audio-player {
+            background: #e8e4dc;
+            border-radius: 16px;
+            padding: 30px;
+            width: 100%;
+            max-width: 900px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .left-tags {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .ref-id {
+            font-size: 15px;
+            color: #5a5a5a;
+            font-weight: 500;
+        }
+
+        .tag {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .tag.neutral {
+            background: #d4b895;
+            color: #5a4a35;
+        }
+
+        .tag.resolved {
+            background: #a8c5b8;
+            color: #2d4a3e;
+        }
+
+        .right-ref {
+            font-size: 13px;
+            color: #8a8a8a;
+        }
+
+        .waveform-container {
+            position: relative;
+            height: 80px;
+            margin: 25px 0;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .waveform {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            height: 100%;
+            width: 100%;
+            gap: 2px;
+        }
+
+        .wave-bar {
+            width: 3px;
+            background: #c4c4c4;
+            border-radius: 2px;
+            transition: all 0.15s ease;
+        }
+
+        .wave-bar.active {
+            background: #d4a574;
+        }
+
+        .wave-bar.played {
+            background: #d4a574;
+        }
+
+        .time-bubble {
+            position: absolute;
+            background: #3a3a3a;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            pointer-events: none;
+            transform: translateX(-50%);
+            left: 30%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .controls-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .control-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+        }
+
+        .control-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .play-pause-btn {
+            background: #d4b895;
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+        }
+
+        .play-pause-btn:hover {
+            background: #c4a885;
+        }
+
+        .speed-control {
+            font-size: 15px;
+            color: #5a5a5a;
+            font-weight: 500;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        .speed-control:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .time-display {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 15px;
+            color: #5a5a5a;
+            font-weight: 500;
+        }
+
+        .menu-btn {
+            background: #d8d4cc;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+        }
+
+        .menu-btn:hover {
+            background: #c8c4bc;
+        }
+
+        /* SVG Icons */
+        svg {
+            width: 20px;
+            height: 20px;
+            fill: #5a5a5a;
+        }
+
+        .play-pause-btn svg {
+            fill: #5a4a35;
+        }
+
+        .menu-btn svg {
+            fill: #5a5a5a;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .controls-section {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .time-display {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .waveform-container {
+                height: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="audio-player">
+        <div class="header">
+            <div class="left-tags">
+                <span class="ref-id">Ref. ID - 75433</span>
+                <span class="tag neutral">Neutral</span>
+                <span class="tag resolved">Resolved</span>
+            </div>
+            <div class="right-ref">Reference ID: STR-20251124-MUM-09</div>
+        </div>
+
+        <div class="waveform-container" id="waveformContainer">
+            <div class="waveform" id="waveform"></div>
+            <div class="time-bubble" id="timeBubble">0:00</div>
+        </div>
+
+        <div class="controls-section">
+            <div class="controls">
+                <button class="control-btn play-pause-btn" id="playPauseBtn">
+                    <svg id="playIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    <svg id="pauseIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: none;">
+                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                    </svg>
+                </button>
+
+                <div class="speed-control" id="speedControl">1.0x</div>
+
+                <button class="control-btn" id="rewindBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M11.99 5V1l-5 5 5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6h-2c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                    </svg>
+                </button>
+
+                <button class="control-btn" id="forwardBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M12.01 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="time-display">
+                <span id="currentTime">0:29</span>
+                <span>/</span>
+                <span id="totalTime">2:54</span>
+
+                <button class="control-btn menu-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <audio id="audio" src="" preload="metadata"></audio>
+    </div>
+
+    <script>
+        const audio = document.getElementById('audio');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const rewindBtn = document.getElementById('rewindBtn');
+        const forwardBtn = document.getElementById('forwardBtn');
+        const speedControl = document.getElementById('speedControl');
+        const waveformContainer = document.getElementById('waveformContainer');
+        const waveform = document.getElementById('waveform');
+        const timeBubble = document.getElementById('timeBubble');
+        const currentTimeEl = document.getElementById('currentTime');
+        const totalTimeEl = document.getElementById('totalTime');
+
+        let isPlaying = false;
+        let currentProgress = 29; // Start at 29 seconds as shown in reference
+        let totalDuration = 174; // 2:54 in seconds
+        let playbackSpeed = 1.0;
+        const speeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+        let speedIndex = 2; // Start at 1.0x
+
+        // Generate waveform bars
+        function generateWaveform() {
+            const numBars = 150;
+            waveform.innerHTML = '';
+            
+            for (let i = 0; i < numBars; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'wave-bar';
+                
+                // Random heights for waveform effect
+                const height = Math.random() * 60 + 20;
+                bar.style.height = height + '%';
+                
+                // Mark played bars (first 30%)
+                if (i < numBars * (currentProgress / totalDuration)) {
+                    bar.classList.add('played');
+                }
+                
+                waveform.appendChild(bar);
+            }
+        }
+
+        generateWaveform();
+
+        // Update waveform position
+        function updateWaveform() {
+            const bars = document.querySelectorAll('.wave-bar');
+            const playedBarCount = Math.floor(bars.length * (currentProgress / totalDuration));
+            
+            bars.forEach((bar, index) => {
+                if (index < playedBarCount) {
+                    bar.classList.add('played');
+                } else {
+                    bar.classList.remove('played');
+                }
+            });
+
+            // Update time bubble position
+            const percent = (currentProgress / totalDuration) * 100;
+            timeBubble.style.left = percent + '%';
+            timeBubble.textContent = formatTime(currentProgress);
+            
+            currentTimeEl.textContent = formatTime(currentProgress);
+        }
+
+        // Play/Pause
+        playPauseBtn.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            
+            if (isPlaying) {
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
+                startPlayback();
+            } else {
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+                stopPlayback();
+            }
+        });
+
+        let playbackInterval;
+
+        function startPlayback() {
+            playbackInterval = setInterval(() => {
+                if (currentProgress < totalDuration) {
+                    currentProgress += playbackSpeed * 0.1;
+                    updateWaveform();
+                } else {
+                    currentProgress = totalDuration;
+                    updateWaveform();
+                    isPlaying = false;
+                    playIcon.style.display = 'block';
+                    pauseIcon.style.display = 'none';
+                    clearInterval(playbackInterval);
+                }
+            }, 100);
+        }
+
+        function stopPlayback() {
+            clearInterval(playbackInterval);
+        }
+
+        // Speed control
+        speedControl.addEventListener('click', () => {
+            speedIndex = (speedIndex + 1) % speeds.length;
+            playbackSpeed = speeds[speedIndex];
+            speedControl.textContent = playbackSpeed + 'x';
+        });
+
+        // Rewind (10 seconds)
+        rewindBtn.addEventListener('click', () => {
+            currentProgress = Math.max(0, currentProgress - 10);
+            updateWaveform();
+        });
+
+        // Forward (10 seconds)
+        forwardBtn.addEventListener('click', () => {
+            currentProgress = Math.min(totalDuration, currentProgress + 10);
+            updateWaveform();
+        });
+
+        // Click on waveform to seek
+        waveformContainer.addEventListener('click', (e) => {
+            const rect = waveformContainer.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const percent = clickX / rect.width;
+            currentProgress = percent * totalDuration;
+            updateWaveform();
+        });
+
+        // Format time helper
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                playPauseBtn.click();
+            } else if (e.code === 'ArrowLeft') {
+                rewindBtn.click();
+            } else if (e.code === 'ArrowRight') {
+                forwardBtn.click();
+            }
+        });
+
+        // Initialize display
+        updateWaveform();
+    </script>
+</body>
+</html>
