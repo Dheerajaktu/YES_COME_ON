@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Transcript</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #e8e8e8;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #f5f5f5;
+            border-radius: 12px;
+            min-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 20px 30px;
+            display: flex;
+            justify-content: flex-end;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid #d0d0d0;
+            border-radius: 8px;
+            padding: 10px 16px;
+            gap: 10px;
+            width: 280px;
+        }
+
+        .search-icon {
+            width: 20px;
+            height: 20px;
+            fill: #999;
+        }
+
+        .search-box input {
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 15px;
+            color: #666;
+            flex: 1;
+        }
+
+        .search-box input::placeholder {
+            color: #aaa;
+        }
+
+        .chat-area {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .message-group {
+            margin-bottom: 30px;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .message-header.right {
+            justify-content: flex-end;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .avatar.bot {
+            background: #2d2d2d;
+        }
+
+        .avatar.user {
+            background: #d4a574;
+        }
+
+        .avatar svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        .sender-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: #2d2d2d;
+        }
+
+        .message-content {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .message-content.left {
+            justify-content: flex-start;
+            padding-left: 52px;
+        }
+
+        .message-content.right {
+            justify-content: flex-end;
+            padding-right: 52px;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 16px 20px;
+            border-radius: 12px;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .message-bubble.bot {
+            background: #e8e8e8;
+            color: #5a5a5a;
+        }
+
+        .message-bubble.user {
+            background: #d9d3c3;
+            color: #4a4a4a;
+        }
+
+        /* Scrollbar styling */
+        .chat-area::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-area::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+
+        .chat-area::-webkit-scrollbar-thumb:hover {
+            background: #bbb;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 0;
+            }
+
+            body {
+                padding: 0;
+            }
+
+            .chat-area {
+                padding: 20px 15px;
+            }
+
+            .message-bubble {
+                max-width: 85%;
+            }
+
+            .message-content.left {
+                padding-left: 0;
+            }
+
+            .message-content.right {
+                padding-right: 0;
+            }
+
+            .search-box {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="search-box">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                </svg>
+                <input type="text" placeholder="Search">
+            </div>
+        </div>
+
+        <div class="chat-area">
+            <!-- Message 1: AI Agent -->
+            <div class="message-group">
+                <div class="message-header">
+                    <div class="avatar bot">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                        </svg>
+                    </div>
+                    <span class="sender-name">AI Agent</span>
+                </div>
+                <div class="message-content left">
+                    <div class="message-bubble bot">
+                        Hello! Thank you for contacting Sinch Support. I am your virtual assistant. How can I help you with your communications API today?
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message 2: Guest f64 -->
+            <div class="message-group">
+                <div class="message-header right">
+                    <span class="sender-name">Guest f64</span>
+                    <div class="avatar user">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="message-content right">
+                    <div class="message-bubble user">
+                        Hi, I'm noticing a high failure rate on the OTP messages we are trying to send to numbers in Brazil. Can you check our traffic status?
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message 3: AI Agent -->
+            <div class="message-group">
+                <div class="message-header">
+                    <div class="avatar bot">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                        </svg>
+                    </div>
+                    <span class="sender-name">AI Agent</span>
+                </div>
+                <div class="message-content left">
+                    <div class="message-bubble bot">
+                        I can certainly check that for you. To proceed, could you please verify your Service Plan ID or the email associated with your Sinch dashboard?
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message 4: Guest f64 -->
+            <div class="message-group">
+                <div class="message-header right">
+                    <span class="sender-name">Guest f64</span>
+                    <div class="avatar user">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="message-content right">
+                    <div class="message-bubble user">
+                        Sure, the email is dev-team@f64tech.com. We are using the Verification API.
+                    </div>
+                </div>
+            </div>
+
+            <!-- You can add more messages here -->
+        </div>
+    </div>
+
+    <script>
+        // Search functionality
+        const searchInput = document.querySelector('.search-box input');
+        
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const messageBubbles = document.querySelectorAll('.message-bubble');
+            
+            messageBubbles.forEach(bubble => {
+                const text = bubble.textContent.toLowerCase();
+                const messageGroup = bubble.closest('.message-group');
+                
+                if (text.includes(searchTerm) || searchTerm === '') {
+                    messageGroup.style.display = 'block';
+                } else {
+                    messageGroup.style.display = 'none';
+                }
+            });
+        });
+
+        // Auto-scroll to bottom
+        const chatArea = document.querySelector('.chat-area');
+        chatArea.scrollTop = chatArea.scrollHeight;
+    </script>
+</body>
+</html>
