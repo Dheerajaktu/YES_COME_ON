@@ -1,0 +1,449 @@
+import React from 'react';
+
+class WaveformAudioPlayer extends React.Component {
+  constructor(props) {
+    super(props);
+    
+    this.state = {
+      isPlaying: false,
+      currentProgress: 29, // Start at 29 seconds as shown in reference
+      totalDuration: 174, // 2:54 in seconds
+      playbackSpeed: 1.0,
+      speedIndex: 2, // Start at 1.0x
+      waveBars: []
+    };
+    
+    this.speeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+    this.playbackInterval = null;
+    
+    // Refs
+    this.waveformContainerRef = React.createRef();
+    this.audioRef = React.createRef();
+  }
+  
+  componentDidMount() {
+    this.generateWaveform();
+    this.setupKeyboardControls();
+  }
+  
+  componentWillUnmount() {
+    this.stopPlayback();
+    document.removeEventListener('keydown', this.handleKeyPress);
+  }
+  
+  // Generate waveform bars
+  generateWaveform = () => {
+    const numBars = 150;
+    const waveBars = [];
+    
+    for (let i = 0; i < numBars; i++) {
+      const height = Math.random() * 60 + 20;
+      const isPlayed = i < numBars * (this.state.currentProgress / this.state.totalDuration);
+      
+      waveBars.push({
+        id: i,
+        height: height,
+        isPlayed: isPlayed
+      });
+    }
+    
+    this.setState({ waveBars });
+  }
+  
+  // Update waveform position
+  updateWaveform = () => {
+    const { currentProgress, totalDuration, waveBars } = this.state;
+    const playedBarCount = Math.floor(waveBars.length * (currentProgress / totalDuration));
+    
+    const updatedBars = waveBars.map((bar, index) => ({
+      ...bar,
+      isPlayed: index < playedBarCount
+    }));
+    
+    this.setState({ waveBars: updatedBars });
+  }
+  
+  // Play/Pause toggle
+  togglePlayPause = () => {
+    const { isPlaying } = this.state;
+    
+    if (!isPlaying) {
+      this.startPlayback();
+    } else {
+      this.stopPlayback();
+    }
+    
+    this.setState({ isPlaying: !isPlaying });
+  }
+  
+  // Start playback
+  startPlayback = () => {
+    this.playbackInterval = setInterval(() => {
+      const { currentProgress, totalDuration, playbackSpeed } = this.state;
+      
+      if (currentProgress < totalDuration) {
+        this.setState(
+          { currentProgress: currentProgress + playbackSpeed * 0.1 },
+          () => this.updateWaveform()
+        );
+      } else {
+        this.setState({ 
+          currentProgress: totalDuration,
+          isPlaying: false 
+        }, () => {
+          this.updateWaveform();
+          this.stopPlayback();
+        });
+      }
+    }, 100);
+  }
+  
+  // Stop playback
+  stopPlayback = () => {
+    if (this.playbackInterval) {
+      clearInterval(this.playbackInterval);
+      this.playbackInterval = null;
+    }
+  }
+  
+  // Change playback speed
+  changeSpeed = () => {
+    const { speedIndex } = this.state;
+    const newSpeedIndex = (speedIndex + 1) % this.speeds.length;
+    const newSpeed = this.speeds[newSpeedIndex];
+    
+    this.setState({
+      speedIndex: newSpeedIndex,
+      playbackSpeed: newSpeed
+    });
+  }
+  
+  // Rewind 10 seconds
+  rewind = () => {
+    this.setState(
+      prevState => ({
+        currentProgress: Math.max(0, prevState.currentProgress - 10)
+      }),
+      () => this.updateWaveform()
+    );
+  }
+  
+  // Forward 10 seconds
+  forward = () => {
+    this.setState(
+      prevState => ({
+        currentProgress: Math.min(prevState.totalDuration, prevState.currentProgress + 10)
+      }),
+      () => this.updateWaveform()
+    );
+  }
+  
+  // Seek on waveform click
+  handleWaveformClick = (e) => {
+    if (this.waveformContainerRef.current) {
+      const rect = this.waveformContainerRef.current.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const percent = clickX / rect.width;
+      const newProgress = percent * this.state.totalDuration;
+      
+      this.setState(
+        { currentProgress: newProgress },
+        () => this.updateWaveform()
+      );
+    }
+  }
+  
+  // Format time helper
+  formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  }
+  
+  // Keyboard controls
+  setupKeyboardControls = () => {
+    document.addEventListener('keydown', this.handleKeyPress);
+  }
+  
+  handleKeyPress = (e) => {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      this.togglePlayPause();
+    } else if (e.code === 'ArrowLeft') {
+      this.rewind();
+    } else if (e.code === 'ArrowRight') {
+      this.forward();
+    }
+  }
+  
+  render() {
+    const { isPlaying, currentProgress, totalDuration, playbackSpeed, waveBars } = this.state;
+    const timeBubblePosition = (currentProgress / totalDuration) * 100;
+    
+    return (
+      <div style={styles.body}>
+        <style>{`
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+        `}</style>
+        
+        <div style={styles.audioPlayer}>
+          <div style={styles.header}>
+            <div style={styles.leftTags}>
+              <span style={styles.refId}>Ref. ID - 75433</span>
+              <span style={{...styles.tag, ...styles.tagNeutral}}>Neutral</span>
+              <span style={{...styles.tag, ...styles.tagResolved}}>Resolved</span>
+            </div>
+            <div style={styles.rightRef}>Reference ID: STR-20251124-MUM-09</div>
+          </div>
+
+          <div 
+            style={styles.waveformContainer} 
+            ref={this.waveformContainerRef}
+            onClick={this.handleWaveformClick}
+          >
+            <div style={styles.waveform}>
+              {waveBars.map((bar) => (
+                <div
+                  key={bar.id}
+                  style={{
+                    ...styles.waveBar,
+                    height: `${bar.height}%`,
+                    background: bar.isPlayed ? '#d4a574' : '#c4c4c4'
+                  }}
+                />
+              ))}
+            </div>
+            
+            <div style={{
+              ...styles.timeBubble,
+              left: `${timeBubblePosition}%`
+            }}>
+              {this.formatTime(currentProgress)}
+            </div>
+          </div>
+
+          <div style={styles.controlsSection}>
+            <div style={styles.controls}>
+              <button 
+                style={styles.playPauseBtn} 
+                onClick={this.togglePlayPause}
+              >
+                {!isPlaying ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style={styles.svg}>
+                    <path d="M8 5v14l11-7z" fill="#5a4a35"/>
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style={styles.svg}>
+                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="#5a4a35"/>
+                  </svg>
+                )}
+              </button>
+
+              <div 
+                style={styles.speedControl} 
+                onClick={this.changeSpeed}
+              >
+                {playbackSpeed}x
+              </div>
+
+              <button 
+                style={styles.controlBtn} 
+                onClick={this.rewind}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style={styles.svg}>
+                  <path d="M11.99 5V1l-5 5 5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6h-2c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="#5a5a5a"/>
+                </svg>
+              </button>
+
+              <button 
+                style={styles.controlBtn} 
+                onClick={this.forward}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style={styles.svg}>
+                  <path d="M12.01 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z" fill="#5a5a5a"/>
+                </svg>
+              </button>
+            </div>
+
+            <div style={styles.timeDisplay}>
+              <span>{this.formatTime(currentProgress)}</span>
+              <span>/</span>
+              <span>{this.formatTime(totalDuration)}</span>
+
+              <button style={styles.menuBtn}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style={styles.svg}>
+                  <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" fill="#5a5a5a"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <audio ref={this.audioRef} src="" preload="metadata"></audio>
+        </div>
+      </div>
+    );
+  }
+}
+
+// Inline styles
+const styles = {
+  body: {
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif',
+    background: '#e8e4dc',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '100vh',
+    padding: '20px'
+  },
+  audioPlayer: {
+    background: '#e8e4dc',
+    borderRadius: '16px',
+    padding: '30px',
+    width: '100%',
+    maxWidth: '900px',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '25px',
+    flexWrap: 'wrap',
+    gap: '15px'
+  },
+  leftTags: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    flexWrap: 'wrap'
+  },
+  refId: {
+    fontSize: '15px',
+    color: '#5a5a5a',
+    fontWeight: '500'
+  },
+  tag: {
+    padding: '6px 16px',
+    borderRadius: '20px',
+    fontSize: '13px',
+    fontWeight: '500'
+  },
+  tagNeutral: {
+    background: '#d4b895',
+    color: '#5a4a35'
+  },
+  tagResolved: {
+    background: '#a8c5b8',
+    color: '#2d4a3e'
+  },
+  rightRef: {
+    fontSize: '13px',
+    color: '#8a8a8a'
+  },
+  waveformContainer: {
+    position: 'relative',
+    height: '80px',
+    margin: '25px 0',
+    display: 'flex',
+    alignItems: 'center',
+    cursor: 'pointer'
+  },
+  waveform: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    height: '100%',
+    width: '100%',
+    gap: '2px'
+  },
+  waveBar: {
+    width: '3px',
+    borderRadius: '2px',
+    transition: 'all 0.15s ease'
+  },
+  timeBubble: {
+    position: 'absolute',
+    background: '#3a3a3a',
+    color: 'white',
+    padding: '6px 14px',
+    borderRadius: '20px',
+    fontSize: '13px',
+    fontWeight: '500',
+    pointerEvents: 'none',
+    transform: 'translateX(-50%)',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+  },
+  controlsSection: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: '20px'
+  },
+  controls: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '15px'
+  },
+  controlBtn: {
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s ease',
+    borderRadius: '8px'
+  },
+  playPauseBtn: {
+    background: '#d4b895',
+    width: '48px',
+    height: '48px',
+    borderRadius: '10px',
+    border: 'none',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s ease'
+  },
+  speedControl: {
+    fontSize: '15px',
+    color: '#5a5a5a',
+    fontWeight: '500',
+    padding: '8px 12px',
+    cursor: 'pointer',
+    borderRadius: '8px',
+    transition: 'all 0.2s ease'
+  },
+  timeDisplay: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '15px',
+    fontSize: '15px',
+    color: '#5a5a5a',
+    fontWeight: '500'
+  },
+  menuBtn: {
+    background: '#d8d4cc',
+    width: '40px',
+    height: '40px',
+    borderRadius: '10px',
+    border: 'none',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  svg: {
+    width: '20px',
+    height: '20px'
+  }
+};
+
+export default WaveformAudioPlayer;
